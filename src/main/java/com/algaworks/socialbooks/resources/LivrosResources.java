@@ -3,6 +3,7 @@ package com.algaworks.socialbooks.resources;
 
 import com.algaworks.socialbooks.domain.Livro;
 import com.algaworks.socialbooks.repository.LivrosRepository;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,19 +25,16 @@ public class LivrosResources {
     }
 
     @RequestMapping(method = RequestMethod.GET)
-    public List<Livro> listar() {
+    public ResponseEntity<List<Livro>> listar() {
 
-        return livrosRepository.findAll();
+        return ResponseEntity.ok(livrosRepository.findAll());
     }
 
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<Void> salvar(@RequestBody Livro livro) {
 
         livro = livrosRepository.save(livro);
-
-        URI uri = ServletUriComponentsBuilder.fromCurrentRequestUri()
-                .path("/{id}").buildAndExpand(livro.getId()).toUri();
-
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequestUri().path("/{id}").buildAndExpand(livro.getId()).toUri();
         return ResponseEntity.created(uri).build();
     }
 
@@ -44,27 +42,30 @@ public class LivrosResources {
     public ResponseEntity<?> buscar(@PathVariable("id") Long id) {
 
         Optional<Livro> livro = livrosRepository.findById(id);
-
         if (livro.isPresent()) {
             return ResponseEntity.status(HttpStatus.OK).body(livro.get());
-        } else {
-            return ResponseEntity.notFound().build();
         }
 
-
+        return ResponseEntity.notFound().build();
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    public void deletar(@PathVariable("id") Long id) {
+    public ResponseEntity<Void> deletar(@PathVariable("id") Long id) {
 
-        livrosRepository.deleteById(id);
+        try {
+            livrosRepository.deleteById(id);
+        } catch (EmptyResultDataAccessException e) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.noContent().build();
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
-    public Livro atualizar(@PathVariable Long id, @RequestBody Livro livro) {
+    public ResponseEntity<Void> atualizar(@PathVariable Long id, @RequestBody Livro livro) {
 
         livro.setId(id);
-        return livrosRepository.save(livro);
+        livrosRepository.save(livro);
+        return ResponseEntity.noContent().build();
     }
 
 
