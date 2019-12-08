@@ -1,9 +1,13 @@
 package com.algaworks.socialbooks.domain;
 
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -15,23 +19,31 @@ public class Livro {
     private Long id;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    @NotEmpty(message = "O campo nome do livro é obrigatório")
     private String nome;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private LocalDate data;
+    @JsonFormat(pattern = "dd/MM/yyyy")
+    @NotNull(message = "O campo data de puiblica;áo é obrigatório")
+    private LocalDate dataPublicacao;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    @NotEmpty(message = "O campo editora é obrigatório")
     private String editora;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    @NotEmpty(message = "O campo resumo é obrigatóriop")
+    @Size(max = 1500, message = "O tamanho máximo do campo resumo é de 1500 caracteres")
     private String resumo;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @Transient
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @OneToMany(mappedBy = "livro")
     private List<Comentario> comentarios;
 
+    @ManyToOne
+    @JoinColumn(name = "AUTOR_ID")
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private String autor;
+    private Autor autor;
 
 
     public Livro() {
@@ -57,12 +69,12 @@ public class Livro {
         this.nome = nome;
     }
 
-    public LocalDate getData() {
-        return data;
+    public LocalDate getDataPublicacao() {
+        return dataPublicacao;
     }
 
-    public void setData(LocalDate data) {
-        this.data = data;
+    public void setDataPublicacao(LocalDate data) {
+        this.dataPublicacao = data;
     }
 
     public String getEditora() {
@@ -89,11 +101,11 @@ public class Livro {
         this.comentarios = comentarios;
     }
 
-    public String getAutor() {
+    public Autor getAutor() {
         return autor;
     }
 
-    public void setAutor(String autor) {
+    public void setAutor(Autor autor) {
         this.autor = autor;
     }
 }
