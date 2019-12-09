@@ -4,17 +4,19 @@ package com.algaworks.socialbooks.resources;
 import com.algaworks.socialbooks.domain.Comentario;
 import com.algaworks.socialbooks.domain.Livro;
 import com.algaworks.socialbooks.services.LivroService;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.validation.Valid;
-import javax.validation.Validator;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
-import java.util.Vector;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/livros")
@@ -30,7 +32,9 @@ public class LivroResources {
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<Livro>> listar() {
 
-        return ResponseEntity.ok(livroService.listar());
+        CacheControl cacheControl = CacheControl.maxAge(20, TimeUnit.SECONDS);
+        return ResponseEntity.status(HttpStatus.OK).cacheControl(cacheControl).body(livroService.listar());
+
     }
 
     @RequestMapping(method = RequestMethod.POST)
@@ -44,6 +48,7 @@ public class LivroResources {
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public ResponseEntity<?> buscar(@PathVariable("id") Long id) {
+
 
         Optional<Livro> livro = livroService.buscar(id);
         return ResponseEntity.status(HttpStatus.OK).body(livro.get());
@@ -65,7 +70,10 @@ public class LivroResources {
     }
 
     @RequestMapping(value = "/{id}/comentarios", method = RequestMethod.POST)
-    public ResponseEntity<Void> adicionarComentario( @PathVariable("id") Long livroId, @Valid @RequestBody Comentario comentario) {
+    public ResponseEntity<Void> adicionarComentario(@PathVariable("id") Long livroId, @Valid @RequestBody Comentario comentario) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        comentario.setUsuario(authentication.getName());
 
         livroService.salvarComentario(livroId, comentario);
 
