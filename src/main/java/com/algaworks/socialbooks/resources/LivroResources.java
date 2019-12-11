@@ -29,6 +29,7 @@ public class LivroResources {
     }
 
 
+    @CrossOrigin
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<Livro>> listar() {
 
